@@ -10,24 +10,29 @@ function q = inverse_kuka(H, myrobot)
     o_d = H(1:3, 4);
     
     % calculate origin of wrist center frame
-    o_c = o_d - Rd*[0 0 d(6)]';
+    o_c = o_d - Rd*[a(6) 0 d(6)]';
     
     xc = o_c(1);
     yc = o_c(2);
     zc = o_c(3);
+
+    dc = sqrt(xc^2 + yc^2);
     
     % Calculate theta 1
     %theta_1 = atan2(yc, xc) - atan2(-d(2), real(sqrt(xc^2 + yc^2 - d(2)^2)));    
-    theta_1 = 0;
+    theta_1 = atan2(yc, xc);
     
     % Calculate sin(theta_3) = D
-    %D = (xc^2 + yc^2 - d(2)^2 + (zc - d(1))^2 - a(2)^2 - d(4)^2)/(2 * a(2) * d(4));
+    D = (a(2)^2 + a(3)^2 + d(4)^2 - (dc-a(1))^2 - (zc - d(1))^2)/(2*a(2)*sqrt(a(3)^2 + d(4)^2));
+    % gamma
+    gamma =  atan2(elbow*real(sqrt(1-D^2)),D);
+
     % Calculate theta_3
-    %theta_3 = atan2(D, elbow*real(sqrt(1-D^2)));
-    theta_3 = pi/2;
+    theta_3 = gamma - pi/2 - atan2(a(3),d(4));
     
     % Calculate theta_2
-    theta_2 = atan2(zc - d(1), xc - a(1)) - atan2(a(3), a(2) + d(4));
+    theta_2 = atan2(sqrt(a(3)^2 + d(4)^2)*sin(gamma), a(2) - sqrt(a(3)^2 + d(4)^2)*D) + atan2(zc-d(1), dc-a(1));
+    %theta_2 = atan2(zc - d(1), dc - a(1)) - atan2(a(3), a(2) + d(4));
     
     % Compute R_3_0 with same method and forward kinematics but with
     % Rotational matrices instead of homogenous matrices
@@ -56,10 +61,10 @@ function q = inverse_kuka(H, myrobot)
         theta_4 = atan2(elbow * M(2, 3), elbow * M(1, 3));
         theta_5 = atan2(elbow * real(sqrt(1-M(3, 3)^2)), elbow * M(3, 3));
         theta_6 = atan2(elbow * M(3, 2), -1*elbow * M(3, 1));
-        q = [theta_1 theta_2 theta_3 theta_4 theta_5 theta_6];
+        q = [theta_1 theta_2 theta_3 theta_4 theta_5 theta_6]';
     else
         disp("Error: Singularity! Yikes!")
-        q = [0 0 0 0 0 0];
+        q = [0 0 0 0 0 0]';
     end
     
 end

@@ -1,4 +1,4 @@
-function H = forward_kuka(q, myrobot)
+function H = forward_kuka(q, myrobot)  % Forward Kinematics
     H = eye(4,4); % base case for iteration
     for i = 1:6 % iterate through the 6 joints
         % extract parameters from input
